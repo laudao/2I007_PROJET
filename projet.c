@@ -1,3 +1,8 @@
+/* NGUYEN Kim-Anh Laura et HAMISSI Fatemeh 
+	A compiler avec:
+	- gcc projet.c -I /usr/X11R6/include -L /usr/X11R6/lib -lX11 -o projet (Mac OS X)
+	- gcc -o projet projet.c -lX11 (Linux)
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,7 +147,7 @@ void Installer (char *serveur){
 
 		wchat = XCreateSimpleWindow(dpy, wracine, 0, 0, 200, 300, 0, cnoir, cblanc);
 		wtextinput = XCreateSimpleWindow(dpy,wchat,0,270,200,30,0, cnoir, cgris); 
-		/* ?????????????????????????????????????*/
+		XSelectInput(dpy, wtextinput, KeyPressMask);
 
 		ctx = XCreateGC(dpy, wprincipale, 0, NULL);
 		XSetLineAttributes(dpy, ctx, mon_epaisseur, LineSolid, CapButt, JoinMiter);
@@ -173,29 +178,21 @@ void Installer (char *serveur){
 }
 
 void Draw(forme forme_dessin, int couleur_dessin, int epaisseur_dessin, GC ctx, int xA, int xB, int yA, int yB){
-		XSetForeground(dpy, ctx_xor, couleur_dessin);
-		XSetForeground(dpy, ctx, couleur_dessin);
-/* il manque l'epaisseur */
+
 		switch(forme_dessin){
 				case LIGNE : 
-						//    XDrawLine(dpy, wprincipale, ctx_xor, xA, yA, xB, yB);
 						XDrawLine(dpy, wprincipale, ctx, xA, yA, xB, yB);
 						break;
-				case CERCLE :
-						  XDrawArc(dpy, wprincipale, ctx_xor, xA, yA, abs(xA-xB), abs(yA-yB),180 ,180);    
+				case CERCLE :  
 						XDrawArc(dpy, wprincipale, ctx , xA, yA, abs(xA-xB), abs(yA-yB), 0,360 *64);
 						break;
-				case CERCLEPLEIN :
-						//  XFillArc(dpy, wprincipale, ctx_xor , xA, yA, abs(xA-xB), abs(yA-yB), 0,360 *64);    
+				case CERCLEPLEIN :    
 						XFillArc(dpy, wprincipale, ctx , xA, yA, abs(xA-xB), abs(yA-yB), 0,360 *64);
 						break;
 				case RECTANGLE :
-
-						// XDrawRectangle(dpy, wprincipale, ctx_xor,xA ,yA ,abs(xA-xB),abs(yA-yB));
 						XDrawRectangle(dpy, wprincipale, ctx,xA ,yA ,abs(xA-xB),abs(yA-yB));
 						break;
 				case RECTANGLEPLEIN :
-						//XFillRectangle(dpy, wprincipale, ctx_xor,xA ,yA ,abs(xA-xB),abs(yA-yB));
 						XFillRectangle(dpy, wprincipale, ctx,xA ,yA ,abs(xA-xB),abs(yA-yB));
 						break;
 				default : ; 
@@ -206,7 +203,6 @@ void Draw(forme forme_dessin, int couleur_dessin, int epaisseur_dessin, GC ctx, 
 void PourButtonPress(XButtonPressedEvent *evmt){
 		if (!nb_boutons_enfonces) {
 				bouton = evmt->button;
-				printf("bouton:%d\n", bouton);
 				switch (bouton) {
 						case 3 :
 								XMoveWindow(dpy, wmenu, evmt->x_root, evmt->y_root);
@@ -279,7 +275,10 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 								if (evmt -> window == wepaisseur4){
 										mon_epaisseur = 4;
 								}
-								XClearWindow(dpy, wprincipale);
+								XSetForeground(dpy, ctx_xor,cblanc-ma_couleur );
+								XSetForeground(dpy, ctx , ma_couleur);
+								XSetLineAttributes(dpy, ctx, mon_epaisseur, LineSolid, CapButt, JoinMiter);
+								XClearWindow(dpy, wmenu);
 
 						break;
 
@@ -296,7 +295,7 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 void PourMotionNotify (XPointerMovedEvent *evmt) {
 		if (bouton == 1) {
 				/* effacer */
-				Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
+				Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor ,xA, xB, yA,yB);
 				xB = evmt->x;
 				yB = evmt->y;
 				/* dessiner un nouveau */
