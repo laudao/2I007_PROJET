@@ -1,8 +1,8 @@
 /* NGUYEN Kim-Anh Laura et HAMISSI Fatemeh 
-	A compiler avec:
-	- gcc projet.c -I /usr/X11R6/include -L /usr/X11R6/lib -lX11 -o projet (Mac OS X)
-	- gcc -o projet projet.c -lX11 (Linux)
-*/
+	 A compiler avec:
+	 - gcc projet.c -I /usr/X11R6/include -L /usr/X11R6/lib -lX11 -o projet (Mac OS X)
+	 - gcc -o projet projet.c -lX11 (Linux)
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,10 +29,12 @@ XEvent         evmt;
 GC             ctx,ctx_xor;
 unsigned long  cnoir, cblanc, cvert, cjaune, corange, cviolet, crouge, cbleu, cgris, ma_couleur, couleur_dessinateur;
 Atom           XA_FORME, XA_COULEUR, XA_EPAISSEUR, XA_xA, XA_xB,XA_yA,XA_yB, XA_CHAT; 
-char           chaine[200];
+char           chaine[200]; /* le texte saisi par l'utilisateur */
 Atom           type_effectif_retour;
 int            format_effectif_retour;
-unsigned long  nb_lus_retour, nb_octets_restants_retour;
+int nb_lus = 0;
+unsigned long  nb_lus_retour; /* nombre de caracteres saisis dans chaine ? */
+unsigned long nb_octets_restants_retour; /* nombre de caracteres qu'on peut encore saisir ? */
 int            xA,xB, yA,yB;
 int            bouton; 
 int			   nb_boutons_enfonces;
@@ -40,7 +42,9 @@ forme          ma_forme, forme_dessinateur;
 int            touche; 
 int            mon_epaisseur, epaisseur_dessinateur; 
 // Le curseur pour le texte dans le wchat
-int            cury;
+int            cury = 0;
+int maj_caps_lock = 0;
+int maj_shift = 0;
 
 void Installer(char *serveur);
 void PourButtonPress(XButtonPressedEvent *evmt);
@@ -68,6 +72,9 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 								break;
 						case Expose:
 								PourExpose((XExposeEvent *)&evmt);
+								break;
+						case KeyPress:
+								PourKeyPress((XKeyPressedEvent*)&evmt);
 								break;
 						default:;
 				}
@@ -148,7 +155,7 @@ void Installer (char *serveur){
 		wchat = XCreateSimpleWindow(dpy, wracine, 0, 0, 200, 300, 0, cnoir, cblanc);
 		wtextinput = XCreateSimpleWindow(dpy,wchat,0,270,200,30,0, cnoir, cgris); 
 		XSelectInput(dpy, wtextinput, KeyPressMask);
-
+		XSelectInput(dpy, wchat, KeyPressMask);
 		ctx = XCreateGC(dpy, wprincipale, 0, NULL);
 		XSetLineAttributes(dpy, ctx, mon_epaisseur, LineSolid, CapButt, JoinMiter);
 		XSetForeground(dpy, ctx, cnoir);
@@ -280,16 +287,16 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 								XSetLineAttributes(dpy, ctx, mon_epaisseur, LineSolid, CapButt, JoinMiter);
 								XClearWindow(dpy, wmenu);
 
-						break;
+								break;
 
-					case 1 :
-						Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
-						Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
-						break;
-					default :;
+						case 1 :
+								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
+								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
+								break;
+						default :;
+				}
+				bouton = 0;
 		}
-		bouton = 0;
-	}
 }
 
 void PourMotionNotify (XPointerMovedEvent *evmt) {
@@ -301,6 +308,77 @@ void PourMotionNotify (XPointerMovedEvent *evmt) {
 				/* dessiner un nouveau */
 				Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
 		}
+}
+
+
+void PourKeyPress (XKeyPressedEvent *evmt) {
+	char *keycode; /* lettre correspondant a la touche appuyee */
+	int i;	
+	touche = XKeycodeToKeysym(dpy, evmt -> keycode, 0); /* keysym de la touche appuyee */
+	/* envoi du message */
+	if (touche == 0xff0d){
+		cury = cury + 10; /* incrementation du curseur dans le chat */
+		XClearWindow(dpy, wtextinput); /* on clear la fenetre de saisie */
+
+		if (cury >= 260) { /* si le chat est rempli */
+				XClearWindow(dpy, wchat); /* on nettoie le chat */
+				cury=0; /* on remet le curseur a 0 */
+		}
+
+		/* on ecrit la chaine de caracteres dans le chat */
+		XDrawString(dpy,wchat, DefaultGC(dpy, ecran),5, cury, chaine, nb_lus);
+		nb_lus = 0; 
+
+		/* on reinitialise la chaine */
+		for (i = 0; i < 200; i++){
+			chaine[i] = 0;
+		}
+	}
+	/* supprimer */
+	else if (touche == 0xff08){
+		chaine[nb_lus] = '\0'; 
+		(nb_lus)--; /* un caractere en moins */
+		XClearWindow(dpy, wtextinput);
+		XDrawString(dpy,wtextinput, DefaultGC(dpy, ecran), 10, 10,chaine,nb_lus);
+	}
+	/* espace */
+	else if (touche == 0x0020){
+		chaine[nb_lus] = ' ';
+		nb_lus++; /* on ajoute l'espace */
+		XClearWindow(dpy, wtextinput);
+		XDrawString(dpy,wtextinput, DefaultGC(dpy, ecran), 10, 10,chaine,nb_lus);
+		
+	}
+	/* majuscule caps lock*/
+	else if (touche == 0xffe5){
+		if (maj_caps_lock){
+			maj_caps_lock = 0;
+		}else{
+			maj_caps_lock = 1;
+		}
+	}
+	/* majuscule shift */
+	else if ((touche == 0xffe1) || (touche == 0xffe2)){
+		maj_shift = 1;
+	}
+	else{
+		keycode = XKeysymToString(XKeycodeToKeysym(dpy, evmt -> keycode, 0));
+
+		chaine[nb_lus] = keycode[0]; /* ajout de la lettre dans la chaine */
+		
+		if (maj_caps_lock == 1 || maj_shift == 1){
+				chaine[nb_lus] = chaine[nb_lus] - 32;
+			if (maj_shift){
+				maj_shift = 0;
+			}
+		}
+		
+		nb_lus++;
+		XClearWindow(dpy, wtextinput);
+		XDrawString(dpy,wtextinput, DefaultGC(dpy, ecran), 10, 10,chaine,nb_lus);
+		
+		keycode = NULL;
+	}
 }
 
 void PourExpose(XExposeEvent *evmt){
