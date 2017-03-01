@@ -29,12 +29,13 @@ XEvent         evmt;
 GC             ctx,ctx_xor;
 unsigned long  cnoir, cblanc, cvert, cjaune, corange, cviolet, crouge, cbleu, cgris, ma_couleur, couleur_dessinateur;
 Atom           XA_FORME, XA_COULEUR, XA_EPAISSEUR, XA_xA, XA_xB,XA_yA,XA_yB, XA_CHAT; 
+int verifForme, verifCouleur, verifEpaisseur, verifxA, verifxB, verifyA, verifyB;
 char           chaine[200]; /* le texte saisi par l'utilisateur */
 Atom           type_effectif_retour;
 int            format_effectif_retour;
 int nb_lus = 0;
-unsigned long  nb_lus_retour; /* nombre de caracteres saisis dans chaine ? */
-unsigned long nb_octets_restants_retour; /* nombre de caracteres qu'on peut encore saisir ? */
+unsigned long  nb_lus_retour;
+unsigned long nb_octets_restants_retour;
 int            xA,xB, yA,yB;
 int            bouton; 
 int			   nb_boutons_enfonces;
@@ -76,6 +77,13 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 						case KeyPress:
 								PourKeyPress((XKeyPressedEvent*)&evmt);
 								break;
+						case PropertyNotify:
+							if (evmt.xproperty.state == PropertyNewValue){
+								switch(evmt.xproperty.atom){
+									case XA_FORME:
+										XGetWindowProperty(dpy, wprincipale, XA_FORME, 0, 100, False, XA_INTEGER
+								}
+						
 						default:;
 				}
 		}
@@ -181,6 +189,16 @@ void Installer (char *serveur){
 
 		/* ????????????????????????? */
 
+		XA_FORME = XInternAtom(dpy, "FORME", False);
+		XA_COULEUR = XInternAtom(dpy, "COULEUR", False);
+		XA_EPAISSEUR = XInternAtom(dpy, "EPAISSEUR", False);
+		XA_xA = XInternAtom(dpy, "xA", False);
+		XA_xB = XInternAtom(dpy, "xB", False);
+		XA_yA = XInternAtom(dpy, "yA", False);
+		XA_yB = XInternAtom(dpy, "yB", False);
+
+		XSetSelectionOwner(dpy, XA_FORME, wprincipale, CurrentTime);
+		
 		XSetIOErrorHandler(XCloseDisplay);
 }
 
@@ -290,6 +308,15 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 								break;
 
 						case 1 :
+								/* display, fenetre, nom de la propriete, type de la propriete, 32 bits, substituer, donnee et nombre d'elements */
+								XChangeProperty(dpy, wprincipale, XA_FORME, XA_STRING, 32, PropModeReplace, ma_forme, 1);
+								
+								XChangeProperty(dpy, wprincipale, XA_COULEUR, XA_INTEGER, 32, PropModeReplace, ma_couleur, 1);
+								XChangeProperty(dpy, wprincipale, XA_EPAISSEUR, XA_INTEGER, 32, PropModeReplace, mon_epaisseur, 1);
+								XChangeProperty(dpy, wprincipale, XA_xa, XA_INTEGER, 32, PropModeReplace, xA, 1);
+								XChangeProperty(dpy, wprincipale, XA_xB, XA_INTEGER, 32, PropModeReplace, xB, 1);
+								XChangeProperty(dpy, wprincipale, XA_yA, XA_INTEGER, 32, PropModeReplace, yA, 1);
+								XChangeProperty(dpy, wprincipale, XA_yB, XA_INTEGER, 32, PropModeReplace, yB, 1);
 								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
 								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
 								break;
