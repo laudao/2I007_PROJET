@@ -29,7 +29,6 @@ XEvent         evmt;
 GC             ctx,ctx_xor;
 unsigned long  cnoir, cblanc, cvert, cjaune, corange, cviolet, crouge, cbleu, cgris, ma_couleur, couleur_dessinateur;
 Atom           XA_FORME, XA_COULEUR, XA_EPAISSEUR, XA_xA, XA_xB,XA_yA,XA_yB, XA_CHAT; 
-int verifForme, verifCouleur, verifEpaisseur, verifxA, verifxB, verifyA, verifyB;
 char chaine_retour[200];
 unsigned char *donnees_retournees;
 char           chaine[200]; /* le texte saisi par l'utilisateur */
@@ -48,6 +47,7 @@ int            mon_epaisseur, epaisseur_dessinateur;
 int            cury = 0;
 int maj_caps_lock = 0;
 int maj_shift = 0;
+
 
 void Installer(char *serveur);
 void PourButtonPress(XButtonPressedEvent *evmt);
@@ -82,50 +82,42 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 						case PropertyNotify:
 							if (evmt.xproperty.state == PropertyNewValue){
 								if (evmt.xproperty.atom == XA_FORME){
-									printf(" test 2 \n");
 										XGetWindowProperty(dpy, wprincipale, XA_FORME, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 										forme_dessinateur = *donnees_retournees;
-										verifForme=1;
 										}
 								if (evmt.xproperty.atom == XA_COULEUR){
 										XGetWindowProperty(dpy, wprincipale, XA_COULEUR, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
-										verifCouleur=1;
 										couleur_dessinateur = *donnees_retournees;
 								}
 										
 								if (evmt.xproperty.atom == XA_EPAISSEUR){
 										XGetWindowProperty(dpy, wprincipale, XA_EPAISSEUR, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
-									verifEpaisseur=1;
-									epaisseur_dessinateur = (long*)(donnees_retournees[0]);
+									epaisseur_dessinateur = *donnees_retournees;
 							  }
 								if (evmt.xproperty.atom == XA_xA){
 										XGetWindowProperty(dpy, wprincipale, XA_xA, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
-							 verifxA=1;
-							 	xA = (long*)(donnees_retournees[0]);
+							 	xA = *donnees_retournees;
 							  }
 							  if (evmt.xproperty.atom == XA_xB){
 										XGetWindowProperty(dpy, wprincipale, XA_xB, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
-							  verifxB=1;
-							  xB = (long*)(donnees_retournees[0]);
+							  xB = *donnees_retournees;
 							  }
 							  
 							  if (evmt.xproperty.atom == XA_yA){
 										XGetWindowProperty(dpy, wprincipale, XA_yA, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
-							  verifyA=1;
-							  yA = (long*)(donnees_retournees[0]);
+							  yA = *donnees_retournees;
 							  }
 							 if (evmt.xproperty.atom == XA_yB){
 										XGetWindowProperty(dpy, wprincipale, XA_yB, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
-							  verifyB=1;
-							  yB = (long*)(donnees_retournees[0]);
+							  yB = *donnees_retournees;
+								
 							  }
 							
-						if (verifForme && verifCouleur && verifEpaisseur && verifxA && verifxB && verifyA && verifyB){
 						
-						printf("test\n");				
+						printf("notify: %d %d\n", xA, yA);
+						printf("notify: %d %d\n", xB, yB);
 						Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx_xor ,xA, xB, yA,yB);
 						Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx ,xA, xB, yA,yB);
-						}
 						
 						default:;
 				}
@@ -206,7 +198,7 @@ void Installer (char *serveur){
 
 		wchat = XCreateSimpleWindow(dpy, wracine, 0, 0, 200, 300, 0, cnoir, cblanc);
 		wtextinput = XCreateSimpleWindow(dpy,wchat,0,270,200,30,0, cnoir, cgris); 
-		XSelectInput(dpy, wtextinput, KeyPressMask|PropertyChangeMask);
+		XSelectInput(dpy, wtextinput, KeyPressMask);
 		XSelectInput(dpy, wchat, KeyPressMask);
 		ctx = XCreateGC(dpy, wprincipale, 0, NULL);
 		XSetLineAttributes(dpy, ctx, mon_epaisseur, LineSolid, CapButt, JoinMiter);
@@ -240,8 +232,14 @@ void Installer (char *serveur){
 		XA_xB = XInternAtom(dpy, "xB", False);
 		XA_yA = XInternAtom(dpy, "yA", False);
 		XA_yB = XInternAtom(dpy, "yB", False);
-
-		
+ 	
+ 		XSetSelectionOwner(dpy, XA_FORME, wprincipale, CurrentTime);
+		XSetSelectionOwner(dpy, XA_COULEUR, wprincipale, CurrentTime);
+	  XSetSelectionOwner(dpy, XA_EPAISSEUR, wprincipale, CurrentTime);
+	 	XSetSelectionOwner(dpy, XA_xA, wprincipale, CurrentTime);
+	 	XSetSelectionOwner(dpy, XA_xB, wprincipale, CurrentTime);
+	  XSetSelectionOwner(dpy, XA_yA, wprincipale, CurrentTime);
+	 	XSetSelectionOwner(dpy, XA_yB, wprincipale, CurrentTime);
 		XSetIOErrorHandler(XCloseDisplay);
 }
 
@@ -359,6 +357,8 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 								XChangeProperty(dpy, wprincipale, XA_xB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xB, 1);
 								XChangeProperty(dpy, wprincipale, XA_yA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yA, 1);
 								XChangeProperty(dpy, wprincipale, XA_yB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yB, 1);
+									printf("release: %d %d\n", xA, yA);
+									printf("release: %d %d\n", xB, yB);
 //								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
 //								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
 								break;
@@ -444,7 +444,6 @@ void PourKeyPress (XKeyPressedEvent *evmt) {
 				chaine[nb_lus] = chaine[nb_lus] - 32;
 			}
 			else{
-				printf("coucou\n");
 				chaine[nb_lus] = touche % 16;
 			}
 			if (maj_shift){
