@@ -82,14 +82,15 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 						case PropertyNotify:
 							if (evmt.xproperty.state == PropertyNewValue){
 								if (evmt.xproperty.atom == XA_FORME){
+									printf(" test 2 \n");
 										XGetWindowProperty(dpy, wprincipale, XA_FORME, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
-										forme_dessinateur = (int*)(donnees_retournees[0]);
+										forme_dessinateur = *donnees_retournees;
 										verifForme=1;
 										}
 								if (evmt.xproperty.atom == XA_COULEUR){
 										XGetWindowProperty(dpy, wprincipale, XA_COULEUR, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 										verifCouleur=1;
-										couleur_dessinateur =(long*)(donnees_retournees[0]);
+										couleur_dessinateur = *donnees_retournees;
 								}
 										
 								if (evmt.xproperty.atom == XA_EPAISSEUR){
@@ -121,8 +122,9 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 							
 						if (verifForme && verifCouleur && verifEpaisseur && verifxA && verifxB && verifyA && verifyB){
 						
-						
-						Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor ,xA, xB, yA,yB);
+						printf("test\n");				
+						Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx_xor ,xA, xB, yA,yB);
+						Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx ,xA, xB, yA,yB);
 						}
 						
 						default:;
@@ -239,7 +241,6 @@ void Installer (char *serveur){
 		XA_yA = XInternAtom(dpy, "yA", False);
 		XA_yB = XInternAtom(dpy, "yB", False);
 
-		XSetSelectionOwner(dpy, XA_FORME, wprincipale, CurrentTime);
 		
 		XSetIOErrorHandler(XCloseDisplay);
 }
@@ -358,8 +359,8 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 								XChangeProperty(dpy, wprincipale, XA_xB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xB, 1);
 								XChangeProperty(dpy, wprincipale, XA_yA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yA, 1);
 								XChangeProperty(dpy, wprincipale, XA_yB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yB, 1);
-								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
-								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
+//								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
+//								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
 								break;
 						default :;
 				}
