@@ -1,7 +1,7 @@
 /* NGUYEN Kim-Anh Laura et HAMISSI Fatemeh 
 	 A compiler avec:
-	 - gcc projet.c -I /usr/X11R6/include -L /usr/X11R6/lib -lX11 -o projet (Mac OS X)
-	 - gcc -o projet projet.c -lX11 (Linux)
+	 - gcc projetV2.c -I /usr/X11R6/include -L /usr/X11R6/lib -lX11 -o projetV2 (Mac OS X)
+	 - gcc -o projetV2 projetV2.c -lX11 (Linux)
  */
 
 #include <stdio.h>
@@ -29,6 +29,10 @@ XEvent         evmt;
 GC             ctx,ctx_xor;
 unsigned long  cnoir, cblanc, cvert, cjaune, corange, cviolet, crouge, cbleu, cgris, ma_couleur, couleur_dessinateur;
 Atom           XA_FORME, XA_COULEUR, XA_EPAISSEUR, XA_xA, XA_xB,XA_yA,XA_yB, XA_CHAT; 
+int verifxA = 0;
+int verifxB = 0; 
+int verifyA = 0;
+int verifyB = 0;
 char chaine_retour[200];
 unsigned char *donnees_retournees;
 char           chaine[200]; /* le texte saisi par l'utilisateur */
@@ -82,48 +86,51 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 						case PropertyNotify:
 							if (evmt.xproperty.state == PropertyNewValue){
 								if (evmt.xproperty.atom == XA_FORME){
-										XGetWindowProperty(dpy, wprincipale, XA_FORME, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
+										XGetWindowProperty(dpy, wracine, XA_FORME,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 										forme_dessinateur = *donnees_retournees;
 										}
 								if (evmt.xproperty.atom == XA_COULEUR){
-										XGetWindowProperty(dpy, wprincipale, XA_COULEUR, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
+										XGetWindowProperty(dpy, wracine, XA_COULEUR,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 										couleur_dessinateur = *donnees_retournees;
 								}
 										
 								if (evmt.xproperty.atom == XA_EPAISSEUR){
-										XGetWindowProperty(dpy, wprincipale, XA_EPAISSEUR, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
+										XGetWindowProperty(dpy, wracine, XA_EPAISSEUR,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 									epaisseur_dessinateur = *donnees_retournees;
 							  }
 								if (evmt.xproperty.atom == XA_xA){
-										XGetWindowProperty(dpy, wprincipale, XA_xA, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
+										XGetWindowProperty(dpy, wracine, XA_xA,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 							 	xA = *donnees_retournees;
+							 	verifxA = 1;
 							  }
 							  if (evmt.xproperty.atom == XA_xB){
-										XGetWindowProperty(dpy, wprincipale, XA_xB, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
+										XGetWindowProperty(dpy, wracine, XA_xB,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 							  xB = *donnees_retournees;
+							  verifxB = 1;
 							  }
 							  
 							  if (evmt.xproperty.atom == XA_yA){
-										XGetWindowProperty(dpy, wprincipale, XA_yA, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
+									XGetWindowProperty(dpy, wracine, XA_yA,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 							  yA = *donnees_retournees;
+							  verifyA = 1;
 							  }
 							 if (evmt.xproperty.atom == XA_yB){
-										XGetWindowProperty(dpy, wprincipale, XA_yB, 0L, 1, True, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
+										XGetWindowProperty(dpy, wracine, XA_yB,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
 							  yB = *donnees_retournees;
-								
+								verifyB = 1;
 							  }
-							
-						
-						printf("notify: %d %d\n", xA, yA);
-						printf("notify: %d %d\n", xB, yB);
-						Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx_xor ,xA, xB, yA,yB);
-						Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx ,xA, xB, yA,yB);
+						if (verifxA && verifyA && verifxB && verifyB){
+							Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx_xor ,xA, xB, yA,yB);
+							Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx ,xA, xB, yA,yB);
+							verifxA = verifyA = verifxB = verifyB = 0;	
+						}
+					}
 						
 						default:;
 				}
 		}
 }
-}
+
 
 void Installer (char *serveur){
 		XSetWindowAttributes attr;
@@ -147,9 +154,9 @@ void Installer (char *serveur){
 		cviolet = 0x9700FC;
 		cgris = 0xEFEFEF;
 
-		ma_couleur = cnoir; 
-		ma_forme = CERCLEPLEIN;
-		mon_epaisseur = 1;
+		ma_couleur = couleur_dessinateur = cnoir; 
+		ma_forme = forme_dessinateur = CERCLEPLEIN;
+		mon_epaisseur = epaisseur_dessinateur = 1;
 		nb_boutons_enfonces = 0;
 		cury = 15;
 
@@ -212,7 +219,8 @@ void Installer (char *serveur){
 
 		XSelectInput(dpy, wprincipale,
 						ButtonPressMask|ButtonReleaseMask|ButtonMotionMask|
-						OwnerGrabButtonMask|PropertyChangeMask);
+						OwnerGrabButtonMask);
+		XSelectInput(dpy, wracine, PropertyChangeMask);
 
 		XStoreName(dpy,wprincipale, "Dessin");
 		XStoreName(dpy,wchat, "Chat");
@@ -233,13 +241,6 @@ void Installer (char *serveur){
 		XA_yA = XInternAtom(dpy, "yA", False);
 		XA_yB = XInternAtom(dpy, "yB", False);
  	
- 		XSetSelectionOwner(dpy, XA_FORME, wprincipale, CurrentTime);
-		XSetSelectionOwner(dpy, XA_COULEUR, wprincipale, CurrentTime);
-	  XSetSelectionOwner(dpy, XA_EPAISSEUR, wprincipale, CurrentTime);
-	 	XSetSelectionOwner(dpy, XA_xA, wprincipale, CurrentTime);
-	 	XSetSelectionOwner(dpy, XA_xB, wprincipale, CurrentTime);
-	  XSetSelectionOwner(dpy, XA_yA, wprincipale, CurrentTime);
-	 	XSetSelectionOwner(dpy, XA_yB, wprincipale, CurrentTime);
 		XSetIOErrorHandler(XCloseDisplay);
 }
 
@@ -350,17 +351,14 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 
 						case 1 :
 								/* display, fenetre, nom de la propriete, type de la propriete, 32 bits, substituer, donnee et nombre d'elements */
-								XChangeProperty(dpy, wprincipale, XA_FORME, XA_INTEGER, 32, PropModeReplace, (unsigned char*) &ma_forme, 1);
-								XChangeProperty(dpy, wprincipale, XA_COULEUR, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &ma_couleur, 1);
-								XChangeProperty(dpy, wprincipale, XA_EPAISSEUR, XA_INTEGER, 32, PropModeReplace, (unsigned char*) &mon_epaisseur, 1);
-								XChangeProperty(dpy, wprincipale, XA_xA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xA, 1);
-								XChangeProperty(dpy, wprincipale, XA_xB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xB, 1);
-								XChangeProperty(dpy, wprincipale, XA_yA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yA, 1);
-								XChangeProperty(dpy, wprincipale, XA_yB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yB, 1);
-									printf("release: %d %d\n", xA, yA);
-									printf("release: %d %d\n", xB, yB);
-//								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
-//								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
+								XChangeProperty(dpy, wracine, XA_FORME, XA_INTEGER, 32, PropModeReplace, (unsigned char*) &ma_forme, 1);
+								XChangeProperty(dpy, wracine, XA_COULEUR, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &ma_couleur, 1);
+								XChangeProperty(dpy, wracine, XA_xA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xA, 1);
+								XChangeProperty(dpy, wracine, XA_xB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xB, 1);
+								XChangeProperty(dpy, wracine, XA_yA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yA, 1);
+								XChangeProperty(dpy, wracine, XA_yB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yB, 1);
+								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
+								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
 								break;
 						default :;
 				}
