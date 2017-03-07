@@ -33,8 +33,8 @@ char           chaine[200]; /* le texte saisi par l'utilisateur */
 Atom           type_effectif_retour;
 int            format_effectif_retour;
 int nb_lus = 0;
-unsigned long  nb_lus_retour; /* nombre de caracteres saisis dans chaine ? */
-unsigned long nb_octets_restants_retour; /* nombre de caracteres qu'on peut encore saisir ? */
+unsigned long  nb_lus_retour; 
+unsigned long nb_octets_restants_retour;
 int            xA,xB, yA,yB;
 int            bouton; 
 int			   nb_boutons_enfonces;
@@ -110,7 +110,7 @@ void Installer (char *serveur){
 		cury = 15;
 
 		wprincipale = XCreateSimpleWindow(dpy, wracine, 0, 0, 500, 500, 0,  cnoir, cblanc);
-
+	
 		attr.override_redirect= True; 
 		wmenu = XCreateWindow(dpy, wracine, 0, 0, 150, 250, 1,
 						CopyFromParent, CopyFromParent, CopyFromParent,
@@ -154,7 +154,7 @@ void Installer (char *serveur){
 
 		wchat = XCreateSimpleWindow(dpy, wracine, 0, 0, 200, 300, 0, cnoir, cblanc);
 		wtextinput = XCreateSimpleWindow(dpy,wchat,0,270,200,30,0, cnoir, cgris); 
-		XSelectInput(dpy, wtextinput, KeyPressMask);
+		XSelectInput(dpy, wtextinput, KeyPressMask|PropertyChangeMask);
 		XSelectInput(dpy, wchat, KeyPressMask);
 		ctx = XCreateGC(dpy, wprincipale, 0, NULL);
 		XSetLineAttributes(dpy, ctx, mon_epaisseur, LineSolid, CapButt, JoinMiter);
@@ -168,7 +168,7 @@ void Installer (char *serveur){
 
 		XSelectInput(dpy, wprincipale,
 						ButtonPressMask|ButtonReleaseMask|ButtonMotionMask|
-						OwnerGrabButtonMask);
+						OwnerGrabButtonMask|PropertyChangeMask);
 
 		XStoreName(dpy,wprincipale, "Dessin");
 		XStoreName(dpy,wchat, "Chat");
@@ -320,7 +320,7 @@ void PourKeyPress (XKeyPressedEvent *evmt) {
 	if (touche == 0xff0d){
 		cury = cury + 10; /* incrementation du curseur dans le chat */
 		XClearWindow(dpy, wtextinput); /* on clear la fenetre de saisie */
-
+		
 		if (cury >= 260) { /* si le chat est rempli */
 				XClearWindow(dpy, wchat); /* on nettoie le chat */
 				cury=0; /* on remet le curseur a 0 */
@@ -334,6 +334,9 @@ void PourKeyPress (XKeyPressedEvent *evmt) {
 		for (i = 0; i < 200; i++){
 			chaine[i] = 0;
 		}
+	}
+	else if (nb_lus == 30){
+		
 	}
 	/* supprimer */
 	else if (touche == 0xff08){
@@ -365,14 +368,21 @@ void PourKeyPress (XKeyPressedEvent *evmt) {
 	else{
 		keycode = XKeysymToString(XKeycodeToKeysym(dpy, evmt -> keycode, 0));
 
-		if (maj_caps_lock || maj_shift){
-			keycode[0] = keycode[0] - 32;
+		chaine[nb_lus] = keycode[0]; /* ajout de la lettre dans la chaine */
+		
+		if (maj_caps_lock == 1 || maj_shift == 1){
+			if ((touche < 0x0030) || (touche > 0x0039)){
+				chaine[nb_lus] = chaine[nb_lus] - 32;
+			}
+			else{
+				printf("coucou\n");
+				chaine[nb_lus] = touche % 16;
+			}
 			if (maj_shift){
 				maj_shift = 0;
 			}
 		}
 		
-		chaine[nb_lus] = keycode[0]; /* ajout de la lettre dans la chaine */
 		nb_lus++;
 		XClearWindow(dpy, wtextinput);
 		XDrawString(dpy,wtextinput, DefaultGC(dpy, ecran), 10, 10,chaine,nb_lus);
