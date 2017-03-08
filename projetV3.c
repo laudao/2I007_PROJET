@@ -1,6 +1,6 @@
 /* NGUYEN Kim-Anh Laura et HAMISSI Fatemeh 
 	 A compiler avec:
-	 - gcc projetV2.c -I /usr/X11R6/include -L /usr/X11R6/lib -lX11 -o projetV2 (Mac OS X)
+	 - gcc projetV3.c -I /usr/X11R6/include -L /usr/X11R6/lib -lX11 -o projetV3 (Mac OS X)
 	 - gcc -o projetV2 projetV2.c -lX11 (Linux)
  */
 
@@ -33,7 +33,6 @@ int verifxA = 0;
 int verifxB = 0; 
 int verifyA = 0;
 int verifyB = 0;
-char chaine_chat[200];
 char           chaine[200]; /* le texte saisi par l'utilisateur */
 int nb_lus = 0;
 //unsigned long  nb_lus_retour;
@@ -83,10 +82,25 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 						case PropertyNotify:
 							if (evmt.xproperty.state == PropertyNewValue){
 								unsigned long *donnees_retournees;
+								unsigned char *donnees_chat;
+								char chaine_chat[200];
 								unsigned long nb_lus_retour;
 								unsigned long nb_octets_restants_retour;
 								Atom           type_effectif_retour;
 								int            format_effectif_retour;
+
+								if (evmt.xproperty.atom == XA_CHAT){
+									XGetWindowProperty(dpy, wracine, XA_CHAT, 0, 100, False, XA_STRING, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_chat);
+									strncpy(chaine_chat, donnees_chat, nb_lus_retour);
+									cury = cury + 10; /* incrementation du curseur dans le chat */
+									
+									if (cury >= 260) { /* si le chat est rempli */
+											XClearWindow(dpy, wchat); /* on nettoie le chat */
+											cury=0; /* on remet le curseur a 0 */
+									}
+									/* on ecrit la chaine de caracteres dans le chat */
+									XDrawString(dpy,wchat, DefaultGC(dpy, ecran),5, cury, chaine_chat, nb_lus_retour);
+								}
 
 								if (evmt.xproperty.atom == XA_FORME){
 										XGetWindowProperty(dpy, wracine, XA_FORME,0L, 1, False, XA_INTEGER, &type_effectif_retour, &format_effectif_retour, &nb_lus_retour, &nb_octets_restants_retour, &donnees_retournees);
@@ -256,8 +270,6 @@ void Installer (char *serveur){
 }
 
 void Draw(forme forme_dessin, int couleur_dessin, int epaisseur_dessin, GC ctx, int xA, int xB, int yA, int yB){
-		//XSetForeground(dpy, ctx_xor,cblanc-couleur_dessin);
-		//XSetForeground(dpy, ctx , couleur_dessin);
 
 		switch(forme_dessin){
 				case LIGNE : 
@@ -277,8 +289,6 @@ void Draw(forme forme_dessin, int couleur_dessin, int epaisseur_dessin, GC ctx, 
 						break;
 				default : ; 
 		}
-//		XSetForeground(dpy, ctx_xor,cblanc-ma_couleur );
-	//	XSetForeground(dpy, ctx , ma_couleur);
 }
 
 void PourButtonPress(XButtonPressedEvent *evmt){
@@ -399,18 +409,9 @@ void PourKeyPress (XKeyPressedEvent *evmt) {
 	
 	/* envoi du message */
 	if (touche == 0xff0d){
-		cury = cury + 10; /* incrementation du curseur dans le chat */
+		nb_lus = 0;
 		XClearWindow(dpy, wtextinput); /* on clear la fenetre de saisie */
-		
-		if (cury >= 260) { /* si le chat est rempli */
-				XClearWindow(dpy, wchat); /* on nettoie le chat */
-				cury=0; /* on remet le curseur a 0 */
-		}
-
-		/* on ecrit la chaine de caracteres dans le chat */
-		XDrawString(dpy,wchat, DefaultGC(dpy, ecran),5, cury, chaine, nb_lus);
-		nb_lus = 0; 
-
+		XChangeProperty(dpy, wracine, XA_CHAT, XA_STRING, 8, PropModeReplace, chaine, strlen(chaine));
 		/* on reinitialise la chaine */
 		for (i = 0; i < 200; i++){
 			chaine[i] = 0;
