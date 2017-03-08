@@ -140,12 +140,14 @@ int main (int argc, char *argv[]){  /* la procedue main()                */
 						if (verifxA && verifyA && verifxB && verifyB){
 							XSetForeground(dpy, ctx_xor,cblanc-couleur_dessinateur );
 							XSetForeground(dpy, ctx , couleur_dessinateur);
+							XSetLineAttributes(dpy, ctx, epaisseur_dessinateur, LineSolid, CapButt, JoinMiter);
 
 							Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx_xor ,xA, xB, yA,yB);
 							Draw(forme_dessinateur, couleur_dessinateur, epaisseur_dessinateur,ctx ,xA, xB, yA,yB);
 							verifxA = verifyA = verifxB = verifyB = 0;	
 							XSetForeground(dpy, ctx_xor,cblanc-ma_couleur );
 							XSetForeground(dpy, ctx , ma_couleur);
+							XSetLineAttributes(dpy, ctx, mon_epaisseur, LineSolid, CapButt, JoinMiter);
 
 						}
 					}
@@ -377,6 +379,7 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 								/* display, fenetre, nom de la propriete, type de la propriete, 32 bits, substituer, donnee et nombre d'elements */
 								XChangeProperty(dpy, wracine, XA_FORME, XA_INTEGER, 32, PropModeReplace, (unsigned char*) &ma_forme, 1);
 								XChangeProperty(dpy, wracine, XA_COULEUR, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &ma_couleur, 1);
+								XChangeProperty(dpy, wracine, XA_EPAISSEUR, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &mon_epaisseur, 1);
 								XChangeProperty(dpy, wracine, XA_xA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xA, 1);
 								XChangeProperty(dpy, wracine, XA_yA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yA, 1);
 								XChangeProperty(dpy, wracine, XA_xB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xB, 1);
