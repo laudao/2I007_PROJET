@@ -35,8 +35,6 @@ int verifyA = 0;
 int verifyB = 0;
 char           chaine[200]; /* le texte saisi par l'utilisateur */
 int nb_lus = 0;
-//unsigned long  nb_lus_retour;
-//unsigned long nb_octets_restants_retour;
 int            xA,xB, yA,yB;
 int            bouton; 
 int			   nb_boutons_enfonces;
@@ -258,8 +256,6 @@ void Installer (char *serveur){
 
 		XA_CHAT = XInternAtom(dpy, "CHAT", False);
 
-		/* ????????????????????????? */
-
 		XA_FORME = XInternAtom(dpy, "FORME", False);
 		XA_COULEUR = XInternAtom(dpy, "COULEUR", False);
 		XA_EPAISSEUR = XInternAtom(dpy, "EPAISSEUR", False);
@@ -384,8 +380,6 @@ void PourButtonRelease (XButtonReleasedEvent *evmt) {
 								XChangeProperty(dpy, wracine, XA_yA, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yA, 1);
 								XChangeProperty(dpy, wracine, XA_xB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &xB, 1);
 								XChangeProperty(dpy, wracine, XA_yB, XA_INTEGER, 32, PropModeReplace, (unsigned char *) &yB, 1);
-//								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx_xor,xA, xB, yA,yB);
-//								Draw(ma_forme,ma_couleur,mon_epaisseur,ctx,xA, xB, yA,yB);
 								break;
 						default :;
 				}
